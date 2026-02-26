@@ -1,0 +1,5 @@
+version: 1
+skill:
+  display_name: 故障闭环排障
+  short_description: 按复杂度分层输出，从诊断到修复验证提交，按需部署与回滚。
+  default_prompt: 使用 $troubleshoot-closed-loop 处理当前报错，先做复杂度与证据评估，再选择 one-pass 或 two-phase，输出可执行命令和最小改动闭环方案。
