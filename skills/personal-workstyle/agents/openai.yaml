@@ -1,0 +1,5 @@
+version: 1
+skill:
+  display_name: 个人工作风格
+  short_description: 在跨项目中执行个人偏好、规则治理与计划确认流程。
+  default_prompt: 先加载 active 规则，再执行；对于大计划先出 Draft，得到确认后再固化。

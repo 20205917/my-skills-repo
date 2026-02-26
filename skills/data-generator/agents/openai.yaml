@@ -1,0 +1,4 @@
+interface:
+  display_name: "数据生成器"
+  short_description: "按DDL生成约束安全的测试数据"
+  default_prompt: "使用 $data-generator 根据我的 DDL 生成满足约束的 SQL 和 JSON 测试数据。"
