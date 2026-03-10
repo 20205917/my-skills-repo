@@ -158,6 +158,12 @@ rg -n "ERROR|Exception|FAILED|Caused by|timeout|auth|permission|denied|refused|p
 
 仅当本轮输出包含实际代码/配置改动时，强制给出 Git 提交方案。纯诊断回合不强制提交。
 
+0. 自动提交触发规则（新增，优先级最高）：
+   - 修复完成后，必须先检查本地暂存区（`git diff --cached --name-only`）。
+   - 若暂存区仅包含“本次修复”相关改动（无无关文件、无历史残留改动），则直接执行提交，不再等待用户额外确认。
+   - 提交信息格式固定为：`fix:中文描述本次修改`。
+   - 若暂存区混入无关改动，先提示并拆分暂存区，再仅提交本次修复内容。
+
 1. 分支命名建议：
    - `fix/<keyword>`
    - `hotfix/<keyword>`
