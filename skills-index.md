@@ -11,3 +11,7 @@
 - `bug-fix-loop`
   - 用途：把报错排查做到“诊断-修复-验证-提交-部署/回滚”的可执行闭环
   - 入口：`skills/bug-fix-loop/SKILL.md`
+
+- `dev2release`
+  - 用途：在开发完成后补齐打包、文档、Changelog 与 GitHub Release 的发布准备闭环
+  - 入口：`skills/dev2release/SKILL.md`
