@@ -1,95 +1,39 @@
 # My Skills Repo
 
-个人技能仓库，用于沉淀可复用的 `SKILL.md` 工作流与配套脚本。
+这是一个面向使用者的技能集合仓库。你可以在对话中直接调用技能，完成排障、数据生成、发布准备等任务。
 
-## 当前技能
+## 如何使用
 
-- `data-generator`
-  - 位置：`skills/data-generator/`
-  - 用途：根据 MySQL/PostgreSQL DDL 生成满足 PK/UK/FK 约束的 SQL/JSON 测试数据。
-- `personal-workstyle`
-  - 位置：`skills/personal-workstyle/`
-  - 用途：管理长期工作规则（`active / pending / history`）并执行规则变更流程。
+1. 在对话里描述你的目标和上下文（报错、DDL、发布目标、规则偏好等）。
+2. 明确指定技能名（例如：`$bug-fix-loop`、`$data-generator`）。
+3. 按技能要求补充输入信息，等待执行结果与下一步建议。
+
+## 可用技能
+
 - `bug-fix-loop`
-  - 位置：`skills/bug-fix-loop/`
   - 用途：把报错排查做到“诊断-修复-验证-提交-部署/回滚”的可执行闭环。
+  - 示例：`使用 $bug-fix-loop 修复这个 CI 失败，给我最小改动方案。`
+- `data-generator`
+  - 用途：根据 MySQL/PostgreSQL DDL 生成满足约束的 SQL/JSON 测试数据。
+  - 示例：`使用 $data-generator 根据 schema.sql 生成 1000 条测试数据。`
+- `personal-workstyle`
+  - 用途：管理个人长期规则，并在每次新对话开始时加载执行。
+  - 示例：`使用 $personal-workstyle 把“提交前必须检查 git status”加入规则。`
 - `dev2release`
-  - 位置：`skills/dev2release/`
-  - 用途：在开发完成后补齐打包、文档、Changelog 与 GitHub Release 的发布准备闭环。
+  - 用途：在开发完成后补齐打包、文档、Changelog 与 GitHub Release。
+  - 示例：`使用 $dev2release 对当前项目做发布前准备并生成发布说明。`
 
-## 快速开始
+更多技能索引见 [skills-index.md](skills-index.md)。
 
-### 1. 生成测试数据
+## 使用建议
 
-```bash
-python3 skills/data-generator/scripts/generate_test_data.py \
-  --ddl ./schema.sql \
-  --db-dialect mysql \
-  --rows 100 \
-  --seed 42 \
-  --formats sql,json \
-  --output-dir ./generated-sample
-```
+- 报错排查类任务优先给日志、命令输出、复现步骤。
+- 数据生成类任务优先提供 DDL 和目标行数。
+- 发布类任务优先提供目标版本号、分支、发布平台。
+- 规则治理类任务优先说明“要新增/删除/生效”的具体规则。
 
-### 2. 管理个人规则
+## 开发与维护文档
 
-```bash
-python3 skills/personal-workstyle/scripts/rules.py list
-python3 skills/personal-workstyle/scripts/rules.py add "新规则内容"
-python3 skills/personal-workstyle/scripts/rules.py pending
-```
+原 README 中面向开发者的内容（目录结构、脚本命令、测试、维护约定）已迁移到：
 
-### 3. 生成 Conventional Changelog 条目
-
-```bash
-python3 skills/dev2release/scripts/conventional_changelog.py \
-  --from-ref "$(git describe --tags --abbrev=0)" \
-  --to-ref HEAD \
-  --version 1.2.3 \
-  --date 2026-03-11
-```
-
-## 测试
-
-仓库使用 Python 标准库 `unittest`，无需额外安装测试框架：
-
-```bash
-python3 -m unittest discover -s tests -p "test_*.py" -v
-```
-
-## 目录结构
-
-```text
-skills/
-  bug-fix-loop/
-    SKILL.md
-    agents/openai.yaml
-  data-generator/
-    SKILL.md
-    scripts/
-    references/
-    agents/openai.yaml
-  dev2release/
-    SKILL.md
-    scripts/
-    references/
-    agents/openai.yaml
-  personal-workstyle/
-    SKILL.md
-    scripts/
-    rules/
-    templates/
-    agents/openai.yaml
-tests/
-skills-index.md
-```
-
-## 维护约定
-
-- 每个 skill 至少包含：`SKILL.md`、`agents/openai.yaml`、必要的 `scripts/` 与参考文档。
-- `agents/openai.yaml` 统一使用以下结构：
-  - `version: 1`
-  - `skill.display_name`
-  - `skill.short_description`
-  - `skill.default_prompt`
-- 新增或修改核心脚本时，同时补充对应测试用例。
+- [AGENTS.md](AGENTS.md)

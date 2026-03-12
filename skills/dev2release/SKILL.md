@@ -1,6 +1,6 @@
 ---
 name: dev2release
-description: 阶段开发完成后，对项目进行可用化与发布准备的执行型技能。用于用户要求完善项目打包流程、编写或更新使用说明文档、编写或更新 Changelog、执行 GitHub Release（含版本号与 Tag）时。默认执行最小发布闸门：打包成功、核心测试通过、工作区干净、Changelog 已更新，并在失败场景提供可执行回滚方案。
+description: 阶段开发完成后，对项目进行可用化与发布准备的执行型技能。用于用户要求完善项目打包流程、编写或更新使用说明文档、编写或更新 Changelog、执行 GitHub Release（含版本号与 Tag）时。默认将 README 改造为面向使用者文档，并把开发维护说明迁移到 AI 高优先读取的独立文档（默认 AGENTS.md）。默认执行最小发布闸门：打包成功、核心测试通过、工作区干净、Changelog 已更新，并在失败场景提供可执行回滚方案。
 ---
 
 # Dev2Release
@@ -52,18 +52,26 @@ git describe --tags --abbrev=0 2>/dev/null || echo "NO_TAG"
 
 ## 阶段 3：更新使用说明文档
 
-默认更新 README 的发布相关段落，至少包含：
+默认将 README 作为面向使用者文档，保留“如何使用/场景示例/入口说明”；开发维护内容迁移到独立文档（默认根目录 `AGENTS.md`，确保 AI 高频可见）。
 
-1. 打包前置条件。
-2. 打包命令与产物位置。
-3. 发布步骤（版本、Tag、Release）。
-4. 回滚入口或回退命令说明。
+README 至少包含：
+
+1. 目标用户视角的功能与使用方式。
+2. 常见调用示例或最小使用路径。
+3. 指向开发维护文档的入口链接。
+
+开发维护文档至少包含：
+
+1. 目录结构、脚本命令、测试命令。
+2. 维护约定与扩展说明。
+3. 与发布流程相关的工程命令（如打包、Changelog、Release）。
 
 要求：
 
 - 保持与现有文档风格一致。
 - 示例命令必须可复制。
 - 文档与实际执行命令一致。
+- 若检测到 README 以开发者内容为主，必须执行内容迁移而非直接堆叠。
 
 ## 阶段 4：更新 Changelog
 
@@ -106,7 +114,7 @@ python3 skills/dev2release/scripts/conventional_changelog.py \
   --date "$TODAY" > RELEASE_NOTES.md
 
 # 提交发布相关变更
-git add README.md CHANGELOG.md
+git add README.md CHANGELOG.md AGENTS.md
 git commit -m "chore(release): v$VERSION"
 
 # 打 tag 并推送
@@ -160,3 +168,8 @@ git revert <release-commit-sha>
 6. 回滚命令
 
 每个区块都必须给出可复制命令或明确文件改动点。
+
+其中“文档变更”区块必须额外给出：
+
+1. README 面向使用者的改造摘要。
+2. 迁移后的开发维护文档路径。

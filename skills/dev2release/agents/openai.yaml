@@ -1,5 +1,5 @@
 version: 1
 skill:
   display_name: Dev2Release
-  short_description: 在开发完成后，补齐打包、文档、Changelog 与 GitHub 发布闭环。
-  default_prompt: 使用 $dev2release 对当前项目执行发布准备，按最小闸门完成打包、README、Changelog 和 GitHub Release。
+  short_description: 在开发完成后，补齐打包、用户文档、Changelog 与 GitHub 发布闭环。
+  default_prompt: 使用 $dev2release 对当前项目执行发布准备，先把 README 改造成面向使用者并迁移开发内容到 AGENTS.md，再完成打包、Changelog 和 GitHub Release。

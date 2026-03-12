@@ -67,3 +67,30 @@ LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 2. Changelog 已包含目标版本。
 3. 打包命令成功。
 4. 核心测试通过。
+
+## 5. README 改造与迁移模板
+
+目标：
+
+1. `README.md` 面向使用者，不承载过多开发维护细节。
+2. 开发维护内容迁移到 AI 高优先读取的独立文档，默认根目录 `AGENTS.md`。
+
+执行建议：
+
+```bash
+test -f AGENTS.md || cat > AGENTS.md <<'EOF'
+# AGENTS 开发指南
+EOF
+```
+
+迁移清单：
+
+1. 从 README 移出开发者导向内容：
+   - 目录结构细节
+   - 脚本与测试命令全集
+   - 维护约定
+2. 在 README 保留使用者导向内容：
+   - 如何使用
+   - 场景示例
+   - 技能入口
+3. 在 README 增加开发文档链接（如 `AGENTS.md`）。
