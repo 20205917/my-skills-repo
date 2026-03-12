@@ -1,5 +1,5 @@
 version: 1
 skill:
   display_name: 个人工作风格
-  short_description: 在跨项目中执行个人偏好、规则治理与计划确认流程。
-  default_prompt: 先加载 active 规则，再执行；对于大计划先出 Draft，得到确认后再固化。
+  short_description: 每次新对话先加载规则，并统一文档与 Git 提交风格。
+  default_prompt: 新对话先加载 active 规则并执行；中文要求同时作用于文档说明和 Git 提交。
