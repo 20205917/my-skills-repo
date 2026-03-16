@@ -16,9 +16,6 @@
 - `data-generator`
   - 用途：根据 MySQL/PostgreSQL DDL 生成满足约束的 SQL/JSON 测试数据。
   - 示例：`使用 $data-generator 根据 schema.sql 生成 1000 条测试数据。`
-- `personal-workstyle`
-  - 用途：管理个人长期规则，并在每次新对话开始时加载执行。
-  - 示例：`使用 $personal-workstyle 把“提交前必须检查 git status”加入规则。`
 - `dev2release`
   - 用途：在开发完成后补齐打包、文档、Changelog 与 GitHub Release。
   - 示例：`使用 $dev2release 对当前项目做发布前准备并生成发布说明。`
@@ -33,8 +30,6 @@
 - 报错排查类任务优先给日志、命令输出、复现步骤。
 - 数据生成类任务优先提供 DDL 和目标行数。
 - 发布类任务优先提供目标版本号、分支、发布平台。
-- 规则治理类任务优先说明“要新增/删除/生效”的具体规则。
-
 ## 开发与维护文档
 
 原 README 中面向开发者的内容（目录结构、脚本命令、测试、维护约定）已迁移到：

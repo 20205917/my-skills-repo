@@ -10,9 +10,6 @@
 - `data-generator`
   - 位置：`skills/data-generator/`
   - 入口：`skills/data-generator/scripts/generate_test_data.py`
-- `personal-workstyle`
-  - 位置：`skills/personal-workstyle/`
-  - 入口：`skills/personal-workstyle/scripts/rules.py`
 - `dev2release`
   - 位置：`skills/dev2release/`
   - 入口：`skills/dev2release/scripts/conventional_changelog.py`
@@ -34,15 +31,7 @@ python3 skills/data-generator/scripts/generate_test_data.py \
   --output-dir ./generated-sample
 ```
 
-### 2. 管理个人规则
-
-```bash
-python3 skills/personal-workstyle/scripts/rules.py list
-python3 skills/personal-workstyle/scripts/rules.py add "新规则内容"
-python3 skills/personal-workstyle/scripts/rules.py pending
-```
-
-### 3. 生成 Conventional Changelog 条目
+### 2. 生成 Conventional Changelog 条目
 
 ```bash
 python3 skills/dev2release/scripts/conventional_changelog.py \
@@ -52,7 +41,7 @@ python3 skills/dev2release/scripts/conventional_changelog.py \
   --date 2026-03-11
 ```
 
-### 4. XLSX 转 JSON
+### 3. XLSX 转 JSON
 
 ```bash
 python3 skills/xlsx2json/scripts/xlsx_to_json.py \
@@ -87,12 +76,6 @@ skills/
     SKILL.md
     scripts/
     references/
-    agents/openai.yaml
-  personal-workstyle/
-    SKILL.md
-    scripts/
-    rules/
-    templates/
     agents/openai.yaml
   xlsx2json/
     SKILL.md
