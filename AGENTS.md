@@ -16,6 +16,9 @@
 - `dev2release`
   - 位置：`skills/dev2release/`
   - 入口：`skills/dev2release/scripts/conventional_changelog.py`
+- `xlsx2json`
+  - 位置：`skills/xlsx2json/`
+  - 入口：`skills/xlsx2json/scripts/xlsx_to_json.py`
 
 ## 开发者快速命令
 
@@ -49,6 +52,17 @@ python3 skills/dev2release/scripts/conventional_changelog.py \
   --date 2026-03-11
 ```
 
+### 4. XLSX 转 JSON
+
+```bash
+python3 skills/xlsx2json/scripts/xlsx_to_json.py \
+  --xlsx ./input.xlsx \
+  --output ./output.json \
+  --map "名称=name" \
+  --enum "状态:启用=1" \
+  --enum "状态:禁用=0"
+```
+
 ## 测试
 
 仓库使用 Python 标准库 `unittest`：
@@ -79,6 +93,10 @@ skills/
     scripts/
     rules/
     templates/
+    agents/openai.yaml
+  xlsx2json/
+    SKILL.md
+    scripts/
     agents/openai.yaml
 tests/
 skills-index.md

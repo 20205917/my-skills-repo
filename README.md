@@ -22,6 +22,9 @@
 - `dev2release`
   - 用途：在开发完成后补齐打包、文档、Changelog 与 GitHub Release。
   - 示例：`使用 $dev2release 对当前项目做发布前准备并生成发布说明。`
+- `xlsx2json`
+  - 用途：把 XLSX 每一行转为 JSON 记录，并支持列名映射与 enum 映射。
+  - 示例：`使用 $xlsx2json 把 input.xlsx 转成 output.json，名称映射为 name，状态映射为 1/0。`
 
 更多技能索引见 [skills-index.md](skills-index.md)。
 

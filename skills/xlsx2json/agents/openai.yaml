@@ -1,0 +1,5 @@
+version: 1
+skill:
+  display_name: XLSX 转 JSON
+  short_description: 将 XLSX 行数据转换为 JSON，支持列名映射、枚举映射与可配置转换策略（trim/类型/格式/默认值）。
+  default_prompt: 使用 $xlsx2json 把 xlsx 转成 json，并按我的列名映射、枚举映射和 transforms 策略进行转换。

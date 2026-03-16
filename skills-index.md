@@ -15,3 +15,7 @@
 - `dev2release`
   - 用途：在开发完成后补齐打包、文档、Changelog 与 GitHub Release 的发布准备闭环
   - 入口：`skills/dev2release/SKILL.md`
+
+- `xlsx2json`
+  - 用途：将 XLSX 每行数据转换为 JSON，支持列名映射与 enum 值映射
+  - 入口：`skills/xlsx2json/scripts/xlsx_to_json.py`
