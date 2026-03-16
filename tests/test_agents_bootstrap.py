@@ -7,6 +7,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_PATH = REPO_ROOT / "skills" / "agents-bootstrap" / "scripts" / "init_agents_md.py"
+UNITTEST_CMD = 'python3 -m unittest discover -s tests -p "test_*.py" -v'
 
 
 def run_cli(*args):
@@ -18,77 +19,65 @@ def run_cli(*args):
     )
 
 
-def build_project_fixture(project_root: Path):
+def build_project_fixture(project_root: Path, include_readme: bool = True, include_skills_index: bool = True):
     (project_root / "skills" / "demo").mkdir(parents=True)
     (project_root / "skills" / "demo" / "SKILL.md").write_text(
-        "---\nname: demo\ndescription: demo\n---\n",
+        "---\nname: demo\ndescription: demo skill\n---\n",
         encoding="utf-8",
     )
     (project_root / "tests").mkdir(parents=True)
     (project_root / "tests" / "test_demo.py").write_text("import unittest\n", encoding="utf-8")
-    (project_root / "README.md").write_text("# Demo\n", encoding="utf-8")
+    if include_readme:
+        (project_root / "README.md").write_text("# Demo Repo\n", encoding="utf-8")
+    if include_skills_index:
+        (project_root / "skills-index.md").write_text(
+            "# Skills Index\n\n"
+            "- `demo`\n"
+            "  - 用途：demo skill\n"
+            "  - 入口：`skills/demo/SKILL.md`\n",
+            encoding="utf-8",
+        )
+
+
+def build_valid_draft(include_pending: bool = False) -> str:
+    text = f"""# AGENTS 开发指南（demo）
+
+## 当前技能与位置
+
+- `demo`
+  - 位置：`skills/demo/`
+  - 入口：`skills/demo/SKILL.md`
+
+## 开发者快速命令
+
+```bash
+{UNITTEST_CMD}
+```
+
+## 测试
+
+```bash
+{UNITTEST_CMD}
+```
+
+## 目录结构
+
+```text
+skills/
+tests/
+```
+
+## 维护约定
+
+- 新增或修改核心脚本时，同时补充对应测试用例。
+"""
+    if include_pending:
+        text += "\n## 待确认项\n\n- README.md 缺失或不可读\n"
+    return text
 
 
 class AgentsBootstrapTests(unittest.TestCase):
-    def test_default_scope_is_project(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
-            project_root.mkdir()
-            build_project_fixture(project_root)
-            codex_home = base / "codex-home"
-
-            completed = run_cli(
-                "--project-root",
-                str(project_root),
-                "--codex-home",
-                str(codex_home),
-            )
-
-            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
-            self.assertFalse((codex_home / "AGENTS.md").exists())
-            self.assertTrue((project_root / "AGENTS.md").exists())
-
-    def test_scope_global_project_both(self):
-        cases = [
-            ("global", True, False),
-            ("project", False, True),
-            ("both", True, True),
-        ]
-
-        for scope, expect_global, expect_project in cases:
-            with self.subTest(scope=scope):
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    base = Path(tmpdir)
-                    project_root = base / "repo"
-                    project_root.mkdir()
-                    build_project_fixture(project_root)
-                    codex_home = base / "codex-home"
-
-                    completed = run_cli(
-                        "--scope",
-                        scope,
-                        "--project-root",
-                        str(project_root),
-                        "--codex-home",
-                        str(codex_home),
-                    )
-
-                    self.assertEqual(completed.returncode, 0, msg=completed.stderr)
-
-                    global_file = codex_home / "AGENTS.md"
-                    project_file = project_root / "AGENTS.md"
-                    self.assertEqual(global_file.exists(), expect_global)
-                    self.assertEqual(project_file.exists(), expect_project)
-
-                    if expect_global:
-                        text = global_file.read_text(encoding="utf-8")
-                        self.assertIn("## 语言与输出", text)
-                    if expect_project:
-                        text = project_file.read_text(encoding="utf-8")
-                        self.assertIn("## 项目基础信息", text)
-
-    def test_global_template_is_reusable_and_project_agnostic(self):
+    def test_global_scope_still_uses_template(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             base = Path(tmpdir)
             project_root = base / "repo"
@@ -106,210 +95,211 @@ class AgentsBootstrapTests(unittest.TestCase):
             )
 
             self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+            self.assertTrue((codex_home / "AGENTS.md").exists())
+            self.assertFalse((project_root / "AGENTS.md").exists())
             text = (codex_home / "AGENTS.md").read_text(encoding="utf-8")
-
             self.assertIn("# AGENTS 全局规则", text)
-            self.assertIn("## 风险与边界", text)
-            self.assertIn("## Git 纪律", text)
-            self.assertNotIn("最后生成时间", text)
-            self.assertNotIn("最近初始化来源项目", text)
-            self.assertNotIn("目录结构", text)
-            self.assertNotIn("测试命令", text)
-            self.assertNotIn("README", text)
 
-    def test_existing_file_requires_force(self):
+    def test_project_without_draft_outputs_prompt_only(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
+            project_root = Path(tmpdir) / "repo"
             project_root.mkdir()
             build_project_fixture(project_root)
-            codex_home = base / "codex-home"
-
-            target = project_root / "AGENTS.md"
-            target.write_text("ORIGINAL\n", encoding="utf-8")
 
             completed = run_cli(
                 "--scope",
                 "project",
                 "--project-root",
                 str(project_root),
-                "--codex-home",
-                str(codex_home),
+                "--dry-run",
+                "--no-print-prompt",
+            )
+
+            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+            self.assertIn("未提供 --draft-file", completed.stdout)
+            self.assertFalse((project_root / "AGENTS.md").exists())
+
+    def test_project_prompt_output_can_be_written(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "repo"
+            project_root.mkdir()
+            build_project_fixture(project_root)
+            prompt_output = Path(tmpdir) / "prompt.md"
+
+            completed = run_cli(
+                "--scope",
+                "project",
+                "--project-root",
+                str(project_root),
+                "--prompt-output",
+                str(prompt_output),
+                "--no-print-prompt",
+            )
+
+            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+            self.assertTrue(prompt_output.exists())
+            text = prompt_output.read_text(encoding="utf-8")
+            self.assertIn("PROJECT_FACTS", text)
+            self.assertIn("STYLE_RULES", text)
+            self.assertIn("PRESERVE_RULES", text)
+            self.assertIn("demo", text)
+            self.assertIn("python3 -m unittest discover -s tests -p", text)
+            self.assertIn("test_*.py", text)
+            self.assertFalse((project_root / "AGENTS.md").exists())
+
+    def test_project_draft_validation_rejects_placeholders(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "repo"
+            project_root.mkdir()
+            build_project_fixture(project_root)
+
+            draft = Path(tmpdir) / "draft.md"
+            draft.write_text(build_valid_draft() + "\nTODO: 请补充\n", encoding="utf-8")
+
+            completed = run_cli(
+                "--scope",
+                "project",
+                "--project-root",
+                str(project_root),
+                "--draft-file",
+                str(draft),
+                "--dry-run",
+                "--no-print-prompt",
+            )
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("占位词", completed.stdout)
+            self.assertFalse((project_root / "AGENTS.md").exists())
+
+    def test_project_dry_run_with_draft_shows_diff_without_writing(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "repo"
+            project_root.mkdir()
+            build_project_fixture(project_root)
+
+            target = project_root / "AGENTS.md"
+            target.write_text("# OLD\n", encoding="utf-8")
+            draft = Path(tmpdir) / "draft.md"
+            draft.write_text(build_valid_draft(), encoding="utf-8")
+
+            completed = run_cli(
+                "--scope",
+                "project",
+                "--project-root",
+                str(project_root),
+                "--draft-file",
+                str(draft),
+                "--dry-run",
+                "--no-print-prompt",
+            )
+
+            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+            self.assertIn("[DIFF]", completed.stdout)
+            self.assertIn("[DRY-RUN] project", completed.stdout)
+            self.assertEqual(target.read_text(encoding="utf-8"), "# OLD\n")
+
+    def test_project_write_requires_force_when_target_exists(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "repo"
+            project_root.mkdir()
+            build_project_fixture(project_root)
+
+            target = project_root / "AGENTS.md"
+            target.write_text("# OLD\n", encoding="utf-8")
+            draft = Path(tmpdir) / "draft.md"
+            draft.write_text(build_valid_draft(), encoding="utf-8")
+
+            completed = run_cli(
+                "--scope",
+                "project",
+                "--project-root",
+                str(project_root),
+                "--draft-file",
+                str(draft),
+                "--no-print-prompt",
             )
 
             self.assertNotEqual(completed.returncode, 0)
             self.assertIn("already exists", completed.stderr)
-            self.assertEqual(target.read_text(encoding="utf-8"), "ORIGINAL\n")
+            self.assertEqual(target.read_text(encoding="utf-8"), "# OLD\n")
 
-    def test_force_overwrites_existing_file(self):
+    def test_project_write_with_force_creates_backup_and_updates_gitignore(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
+            project_root = Path(tmpdir) / "repo"
             project_root.mkdir()
             build_project_fixture(project_root)
-            codex_home = base / "codex-home"
 
             target = project_root / "AGENTS.md"
-            target.write_text("ORIGINAL\n", encoding="utf-8")
+            target.write_text("# OLD\n", encoding="utf-8")
+            draft = Path(tmpdir) / "draft.md"
+            draft.write_text(build_valid_draft(), encoding="utf-8")
 
             completed = run_cli(
                 "--scope",
                 "project",
                 "--project-root",
                 str(project_root),
-                "--codex-home",
-                str(codex_home),
+                "--draft-file",
+                str(draft),
                 "--force",
+                "--no-print-prompt",
             )
 
             self.assertEqual(completed.returncode, 0, msg=completed.stderr)
-            content = target.read_text(encoding="utf-8")
-            self.assertNotEqual(content, "ORIGINAL\n")
-            self.assertIn("## 项目基础信息", content)
+            self.assertEqual(target.read_text(encoding="utf-8"), build_valid_draft())
 
-    def test_dry_run_does_not_write_files(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
-            project_root.mkdir()
-            build_project_fixture(project_root)
-            codex_home = base / "codex-home"
-
-            completed = run_cli(
-                "--scope",
-                "both",
-                "--project-root",
-                str(project_root),
-                "--codex-home",
-                str(codex_home),
-                "--dry-run",
-            )
-
-            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
-            self.assertIn("[DRY-RUN]", completed.stdout)
-            self.assertFalse((codex_home / "AGENTS.md").exists())
-            self.assertFalse((project_root / "AGENTS.md").exists())
-            self.assertFalse((project_root / ".gitignore").exists())
-
-    def test_dry_run_allows_existing_without_force(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
-            project_root.mkdir()
-            build_project_fixture(project_root)
-            codex_home = base / "codex-home"
-
-            target = project_root / "AGENTS.md"
-            target.write_text("ORIGINAL\n", encoding="utf-8")
-
-            completed = run_cli(
-                "--scope",
-                "project",
-                "--project-root",
-                str(project_root),
-                "--codex-home",
-                str(codex_home),
-                "--dry-run",
-            )
-
-            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
-            self.assertIn("[DRY-RUN]", completed.stdout)
-            self.assertEqual(target.read_text(encoding="utf-8"), "ORIGINAL\n")
-
-    def test_project_write_updates_gitignore_without_duplication(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
-            project_root.mkdir()
-            build_project_fixture(project_root)
-            codex_home = base / "codex-home"
-
-            first_run = run_cli(
-                "--scope",
-                "project",
-                "--project-root",
-                str(project_root),
-                "--codex-home",
-                str(codex_home),
-            )
-            self.assertEqual(first_run.returncode, 0, msg=first_run.stderr)
+            backups = list(project_root.glob("AGENTS.md.bak.*"))
+            self.assertEqual(len(backups), 1)
+            self.assertIn("[ROLLBACK]", completed.stdout)
 
             gitignore = project_root / ".gitignore"
             self.assertTrue(gitignore.exists())
-            text = gitignore.read_text(encoding="utf-8")
-            self.assertIn("AGENTS.md\n", text)
-            self.assertEqual(text.splitlines().count("AGENTS.md"), 1)
+            lines = gitignore.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(lines.count("AGENTS.md"), 1)
 
-            second_run = run_cli(
-                "--scope",
-                "project",
-                "--project-root",
-                str(project_root),
-                "--codex-home",
-                str(codex_home),
-                "--force",
-            )
-            self.assertEqual(second_run.returncode, 0, msg=second_run.stderr)
-            text = gitignore.read_text(encoding="utf-8")
-            self.assertEqual(text.splitlines().count("AGENTS.md"), 1)
-
-    def test_template_is_chinese_only(self):
+    def test_missing_facts_requires_pending_section(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
+            project_root = Path(tmpdir) / "repo"
             project_root.mkdir()
-            build_project_fixture(project_root)
-            codex_home = base / "codex-home"
+            build_project_fixture(project_root, include_readme=False, include_skills_index=False)
 
-            run_result = run_cli(
-                "--scope",
-                "project",
-                "--project-root",
-                str(project_root),
-                "--codex-home",
-                str(codex_home),
-            )
-            self.assertEqual(run_result.returncode, 0, msg=run_result.stderr)
-
-            text = (project_root / "AGENTS.md").read_text(encoding="utf-8")
-            self.assertIn("## 项目基础信息", text)
-            self.assertIn("## 环境搭建与开发流程", text)
-            self.assertIn("## 测试规范", text)
-            self.assertIn("## 约定规则", text)
-            self.assertIn("### 必须做", text)
-            self.assertIn("### 先询问", text)
-            self.assertIn("### 绝对禁止", text)
-            self.assertIn("## 项目级与子目录级修改规则", text)
-            self.assertNotIn("最后生成时间", text)
-            self.assertNotIn("## 项目技能索引", text)
-            self.assertNotIn("## 目录结构", text)
-            self.assertNotIn("## 代码风格规范", text)
-            self.assertNotIn("## 操作边界与禁止行为", text)
-            self.assertNotIn("## Project Skill Index", text)
-
-    def test_project_template_falls_back_to_todo_when_not_detectable(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-            base = Path(tmpdir)
-            project_root = base / "repo"
-            project_root.mkdir()
-            codex_home = base / "codex-home"
+            draft = Path(tmpdir) / "draft.md"
+            draft.write_text(build_valid_draft(include_pending=False), encoding="utf-8")
 
             completed = run_cli(
                 "--scope",
                 "project",
                 "--project-root",
                 str(project_root),
-                "--codex-home",
-                str(codex_home),
+                "--draft-file",
+                str(draft),
+                "--dry-run",
+                "--no-print-prompt",
             )
-            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
 
-            text = (project_root / "AGENTS.md").read_text(encoding="utf-8")
-            self.assertIn("TODO: 请补充项目类型", text)
-            self.assertIn("TODO: 请补充核心技术栈", text)
-            self.assertIn("TODO: 请补充项目用途、目标用户与业务边界", text)
-            self.assertIn("TODO: 请补充环境搭建命令。", text)
-            self.assertIn("TODO: 请补充测试执行命令", text)
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("待确认项", completed.stdout)
+
+    def test_current_repo_prompt_contains_core_facts(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            prompt_output = Path(tmpdir) / "repo-prompt.md"
+
+            completed = run_cli(
+                "--scope",
+                "project",
+                "--project-root",
+                str(REPO_ROOT),
+                "--prompt-output",
+                str(prompt_output),
+                "--no-print-prompt",
+            )
+
+            self.assertEqual(completed.returncode, 0, msg=completed.stderr)
+            text = prompt_output.read_text(encoding="utf-8")
+            for skill_name in ("bug-fix-loop", "data-generator", "dev2release", "xlsx2json"):
+                self.assertIn(skill_name, text)
+            self.assertIn("python3 -m unittest discover -s tests -p", text)
+            self.assertIn("test_*.py", text)
 
 
 if __name__ == "__main__":
